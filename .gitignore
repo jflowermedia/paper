@@ -1,0 +1,15 @@
+.DS_Store
+
+# Swift build output
+Paper/.build/
+Paper/build/
+
+# Downloaded paintings and their per-machine state
+*.jpg
+*.jpeg
+*.png
+_metadata.json
+current_wallpaper.json
+
+# Python
+__pycache__/
