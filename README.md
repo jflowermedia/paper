@@ -9,9 +9,9 @@
 Search for an artist, a place or a subject. Paper downloads the paintings<br>
 from four museums and changes your wallpaper for you.
 
-[![Latest release](https://img.shields.io/github/v/release/jflowermedia/paper?label=release&color=c9a24b)](../../releases)
-![macOS 14 or later](https://img.shields.io/badge/macOS-14%2B-2b2b2b)
-![Free, MIT licence](https://img.shields.io/badge/licence-MIT-2b2b2b)
+[![Latest release](https://img.shields.io/github/v/release/jflowermedia/paper?label=release&color=fab387)](../../releases)
+![macOS 14 or later](https://img.shields.io/badge/macOS-14%2B-1e1e2e)
+![Free, MIT licence](https://img.shields.io/badge/licence-MIT-1e1e2e)
 
 **[Download](../../releases/latest/download/Paper.zip)** &nbsp;·&nbsp; **[Guide](#guide)** &nbsp;·&nbsp; **[Report a problem](../../issues)**
 
@@ -69,7 +69,9 @@ Paper then appears in your menu bar, at the top right of the screen.
 
 Built by **[JFlowerMedia](https://github.com/jflowermedia)**.
 
-Paintings come from the open collections of [The Met](https://www.metmuseum.org/), the [Rijksmuseum](https://www.rijksmuseum.nl/), the [Art Institute of Chicago](https://www.artic.edu/) and the [Cleveland Museum of Art](https://www.clevelandart.org/). Paper isn't affiliated with them. Paper is [MIT licensed](LICENSE).
+Paintings come from the open collections of [The Met](https://www.metmuseum.org/), the [Rijksmuseum](https://www.rijksmuseum.nl/), the [Art Institute of Chicago](https://www.artic.edu/) and the [Cleveland Museum of Art](https://www.clevelandart.org/). Paper isn't affiliated with them.
+
+The icon uses the [Catppuccin](https://github.com/catppuccin/catppuccin) palette, MIT. Paper is [MIT licensed](LICENSE).
 
 <details>
 <summary>Disclaimer</summary>
