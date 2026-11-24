@@ -57,6 +57,7 @@ struct MenuView: View {
                 }
             }
             .buttonStyle(MenuRowStyle())
+            .labelStyle(MenuRowLabelStyle())
 
             Divider()
 
@@ -145,6 +146,16 @@ struct MenuView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .textSelection(.enabled)
+        }
+    }
+}
+
+/// Gives every icon the same width, so the titles line up.
+struct MenuRowLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 8) {
+            configuration.icon.frame(width: 20)
+            configuration.title
         }
     }
 }
