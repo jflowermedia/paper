@@ -195,6 +195,11 @@ final class Downloader {
             log("“\(config.term)” has no characters usable in a folder name.")
             return
         }
+        Paths.createRootIfNeeded()
+        guard Paths.rootExists else {
+            log(Paths.missingRootMessage)
+            return
+        }
         let outDir = config.root.appendingPathComponent(folderName, isDirectory: true)
         let metadataURL = outDir.appendingPathComponent(Metadata.filename)
         var metadata = Metadata.load(metadataURL)

@@ -55,6 +55,7 @@ struct MenuView: View {
                 Button { NSWorkspace.shared.open(Paths.root) } label: {
                     Label("Open Wallpapers Folder", systemImage: "folder")
                 }
+                .disabled(!Paths.rootExists)
             }
             .buttonStyle(MenuRowStyle())
             .labelStyle(MenuRowLabelStyle())
@@ -79,6 +80,17 @@ struct MenuView: View {
                 }
                 .fixedSize()
             }
+            LabeledContent("Wallpapers folder") {
+                Menu(folderName) {
+                    Button("Choose…") { chooseFolder() }
+                    if Paths.chosenRoot != nil {
+                        Button("Use Pictures → Wallpapers") { library.setFolder(nil) }
+                    }
+                }
+                .fixedSize()
+            }
+            // Switching mid-download would split the collection.
+            .disabled(downloads.running)
             Picker("Change wallpaper", selection: $library.rotationInterval) {
                 Text("Never").tag(0.0)
                 Text("Every hour").tag(3_600.0)
@@ -112,6 +124,25 @@ struct MenuView: View {
     private var collectionsSummary: String {
         let on = library.collections.filter { !library.disabledCollections.contains($0.name) }.count
         return on == library.collections.count ? "All \(on)" : "\(on) of \(library.collections.count)"
+    }
+
+    private var folderName: String {
+        MenuBarLabel.truncateMiddle(library.folder.lastPathComponent) { $0.count <= 16 }
+    }
+
+    private func chooseFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.directoryURL = library.folder
+        panel.message = "Choose where Paper keeps its paintings. Ones you already have stay where they are."
+        panel.prompt = "Choose"
+        NSApp.activate(ignoringOtherApps: true)
+        panel.begin { response in
+            guard response == .OK, let url = panel.url, !downloads.running else { return }
+            library.setFolder(url)
+        }
     }
 
     private func nowShowing(_ painting: Painting) -> some View {

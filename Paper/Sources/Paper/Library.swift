@@ -7,14 +7,38 @@ import ServiceManagement
 /// _metadata.json files and current_wallpaper.json keep working (and the
 /// scripts can still run alongside the app).
 enum Paths {
-    static let root: URL = {
+    static let defaultRoot = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Pictures/Wallpapers")
+
+    private static let commandLineRoot: URL? = {
         let args = CommandLine.arguments
-        if let i = args.firstIndex(of: "--root"), i + 1 < args.count {
-            return URL(fileURLWithPath: (args[i + 1] as NSString).expandingTildeInPath)
-        }
-        return FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Pictures/Wallpapers")
+        guard let i = args.firstIndex(of: "--root"), i + 1 < args.count else { return nil }
+        return URL(fileURLWithPath: (args[i + 1] as NSString).expandingTildeInPath)
     }()
+
+    /// The folder chosen in the menu; nil means the default.
+    static var chosenRoot: URL? {
+        get { UserDefaults.standard.string(forKey: "wallpapersFolder").map { URL(fileURLWithPath: $0) } }
+        set { UserDefaults.standard.set(newValue?.path, forKey: "wallpapersFolder") }
+    }
+
+    static var root: URL { commandLineRoot ?? chosenRoot ?? defaultRoot }
+
+    static var rootExists: Bool {
+        var isDirectory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory) && isDirectory.boolValue
+    }
+
+    /// Creates the root, unless it's a chosen folder: if that's missing its
+    /// drive is probably unplugged, and a new empty folder would hide that.
+    static func createRootIfNeeded() {
+        guard commandLineRoot != nil || chosenRoot == nil else { return }
+        try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    }
+
+    static var missingRootMessage: String {
+        "Can’t find the wallpapers folder “\(root.lastPathComponent)”. Is its drive connected?"
+    }
 
     static var stateFile: URL { root.appendingPathComponent("current_wallpaper.json") }
 }
@@ -107,6 +131,7 @@ final class Library: ObservableObject {
     @Published private(set) var thumbnail: NSImage?
     @Published private(set) var problem: String?
     @Published private(set) var collections: [Collection] = []
+    @Published private(set) var folder = Paths.root
     @Published private(set) var disabledCollections: Set<String> {
         didSet { StoredSet(key: "disabledCollections").save(disabledCollections) }
     }
@@ -135,7 +160,7 @@ final class Library: ObservableObject {
         favourites = StoredSet(key: "favourites").load()
         hidden = StoredSet(key: "hidden").load()
         // So Open Wallpapers Folder works before the first download.
-        try? FileManager.default.createDirectory(at: Paths.root, withIntermediateDirectories: true)
+        Paths.createRootIfNeeded()
         reload()
         refreshCollections()
         rotateHotKey = HotKey(keyCode: kVK_ANSI_R, modifiers: HotKey.hyper) { [weak self] in
@@ -188,7 +213,8 @@ final class Library: ObservableObject {
         else {
             current = nil
             thumbnail = nil
-            problem = "No wallpaper chosen yet. Click Rotate Now."
+            lastRotated = nil
+            problem = Paths.rootExists ? "No wallpaper chosen yet. Click Rotate Now." : Paths.missingRootMessage
             return
         }
         lastRotated = (state["rotated_at"] as? String).flatMap(Self.parseTimestamp)
@@ -207,6 +233,18 @@ final class Library: ObservableObject {
                 self?.thumbnail = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
             }
         }
+    }
+
+    /// Switches to another wallpapers folder (nil for the default). Paintings
+    /// in the old one stay where they are.
+    func setFolder(_ url: URL?) {
+        Paths.chosenRoot = url?.standardizedFileURL == Paths.defaultRoot.standardizedFileURL ? nil : url
+        Paths.createRootIfNeeded()
+        folder = Paths.root
+        reload()
+        refreshCollections()
+        applyCurrent()
+        checkSchedule()
     }
 
     func refreshCollections() {
@@ -238,6 +276,10 @@ final class Library: ObservableObject {
 
     func rotate() {
         refreshCollections()
+        guard Paths.rootExists else {
+            problem = Paths.missingRootMessage
+            return
+        }
         // Enabled collections, minus hidden paintings and the current one;
         // favourites weigh more.
         var pool: [(folder: String, file: String, weight: Double)] = []
@@ -256,20 +298,26 @@ final class Library: ObservableObject {
                 : "Nothing to show: every collection is turned off or hidden."
             return
         }
-        Self.applyWallpaper(Paths.root.appendingPathComponent(pick.folder).appendingPathComponent(pick.file))
         let state: [String: Any] = [
             "folder": pick.folder,
             "filename": pick.file,
             "rotated_at": Self.formatTimestamp(Date()),
         ]
-        if let data = try? JSONSerialization.data(withJSONObject: state) {
-            try? data.write(to: Paths.stateFile, options: .atomic)
+        // Saved before the wallpaper changes: if it can't be, the schedule
+        // would think a rotation was still due and change it every minute.
+        do {
+            try JSONSerialization.data(withJSONObject: state).write(to: Paths.stateFile, options: .atomic)
+        } catch {
+            problem = "Can’t save to the wallpapers folder “\(Paths.root.lastPathComponent)”."
+            return
         }
+        Self.applyWallpaper(Paths.root.appendingPathComponent(pick.folder).appendingPathComponent(pick.file))
         reload()
     }
 
     private func applyCurrent() {
-        if let url = current?.fileURL { Self.applyWallpaper(url) }
+        guard let url = current?.fileURL, FileManager.default.fileExists(atPath: url.path) else { return }
+        Self.applyWallpaper(url)
     }
 
     /// Applies to every display's current Space; skips displays already showing it.

@@ -8,7 +8,7 @@ Paper/build/
 *.jpg
 *.jpeg
 *.png
-!docs/screenshot.png
+!docs/*.png
 _metadata.json
 current_wallpaper.json
 
