@@ -7,6 +7,8 @@ wallpaper for you.
 
 Free, with no account needed.
 
+<img src="docs/screenshot.png" width="320" alt="Paper's menu, showing the current painting with buttons to rotate, favourite or hide it, and settings below">
+
 ## Download
 
 **[Download Paper](https://github.com/jflowermedia/paper/releases/latest/download/Paper.zip)**
