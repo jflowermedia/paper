@@ -495,6 +495,12 @@ final class Downloader {
         let date = text("\(cho)/\(el("created"))\(en)") ?? ""
         let description = text("\(cho)/\(el("description"))\(en)") ?? text("\(cho)/\(el("description"))\(nl)") ?? ""
 
+        // Some works are in copyright. One marked CC0 can still name a rights
+        // holder in dc:rights, so leave those out too.
+        let rights = text("//\(el("Aggregation"))/\(el("rights"))/@*[local-name()='resource']") ?? ""
+        let rightsHolder = text("//*[name()='dc:rights']")
+        let isPublicDomain = rights.contains("creativecommons.org/publicdomain/") && rightsHolder == nil
+
         return Artwork(
             museum: .rijks,
             id: numericID,
@@ -505,7 +511,7 @@ final class Downloader {
             imageURL: imageURL,
             sizeProbe: iiifBase.flatMap { URL(string: "\($0)/info.json") }.map { .iiifInfo($0) } ?? .unknown,
             sourceURL: lodID,  // redirects to the collection page in a browser
-            isPublicDomain: true,
+            isPublicDomain: isPublicDomain,
             searchText: "\(title) \(artist) \(description)".lowercased())
     }
 
