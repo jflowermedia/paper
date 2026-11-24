@@ -67,7 +67,7 @@ Paper then appears in your menu bar, at the top right of the screen.
 
 ## Credits
 
-Built by **[JFlowerMedia](https://github.com/jflowermedia)**.
+<sub>Built by [JFlowerMedia](https://jflowermedia.com/)</sub>
 
 Paintings come from the open collections of [The Met](https://www.metmuseum.org/), the [Rijksmuseum](https://www.rijksmuseum.nl/), the [Art Institute of Chicago](https://www.artic.edu/) and the [Cleveland Museum of Art](https://www.clevelandart.org/). Paper isn't affiliated with them.
 
